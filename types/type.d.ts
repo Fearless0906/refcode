@@ -47,6 +47,30 @@ export interface Snippet {
   user_id: string;
 }
 
+export interface CheatSheetItem {
+  id: string;
+  cheatsheet_id: string;
+  title: string;
+  description: string;
+  code: string;
+  category: string;
+  order_index: number;
+  created_at: string;
+}
+
+export interface CheatSheet {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  icon: string;
+  favorite: boolean;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  items?: CheatSheetItem[];
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -83,6 +107,73 @@ export interface Database {
           created_at?: string;
           favorite?: boolean;
           user_id?: string;
+        };
+      };
+      cheatsheets: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          category: string;
+          icon: string;
+          favorite: boolean;
+          created_at: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description: string;
+          category: string;
+          icon: string;
+          favorite?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string;
+          category?: string;
+          icon?: string;
+          favorite?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+      };
+      cheatsheet_items: {
+        Row: {
+          id: string;
+          cheatsheet_id: string;
+          title: string;
+          description: string;
+          code: string;
+          category: string;
+          order_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          cheatsheet_id: string;
+          title: string;
+          description: string;
+          code: string;
+          category: string;
+          order_index?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          cheatsheet_id?: string;
+          title?: string;
+          description?: string;
+          code?: string;
+          category?: string;
+          order_index?: number;
+          created_at?: string;
         };
       };
     };

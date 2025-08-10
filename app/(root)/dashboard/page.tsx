@@ -9,43 +9,14 @@ import {
   BookOpen,
   Bookmark,
   FolderOpen,
-  Github,
-  ExternalLink,
-  Star,
   TrendingUp,
-  Clock,
-  Activity,
-  Users,
-  GitCommit,
   Plus,
-  Calendar,
-  Zap,
-  Play,
-  Archive,
-  Globe,
-  Smartphone,
-  Database,
-  Cloud,
-  Tag,
   FileText,
-  MessageSquare,
-  Eye,
-  ArrowUpRight,
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QuickStats from "@/components/QuickStats";
 import RecentActivity from "@/components/RecentActivity";
 import QuickActions from "@/components/QuickActions";
