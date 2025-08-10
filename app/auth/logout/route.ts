@@ -7,6 +7,6 @@ export async function POST(request: NextRequest) {
   // Sign out the user
   await supabase.auth.signOut();
 
-  // Redirect to login page
-  return NextResponse.redirect(new URL("/login", request.url));
+  // Redirect to landing page
+  return NextResponse.redirect(new URL("/", request.url));
 }

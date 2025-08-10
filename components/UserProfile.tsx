@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/contexts/auth-context";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -15,6 +16,7 @@ import { LogOut, User } from "lucide-react";
 
 export function UserProfile() {
   const { user, signOut } = useAuth();
+  const router = useRouter();
 
   if (!user) {
     return null;
@@ -22,6 +24,7 @@ export function UserProfile() {
 
   const handleSignOut = async () => {
     await signOut();
+    router.push("/");
   };
 
   const getUserInitials = (email: string) => {
@@ -41,7 +44,7 @@ export function UserProfile() {
               {user.user_metadata?.full_name
                 ? user.user_metadata.full_name
                     .split(" ")
-                    .map((n) => n[0])
+                    .map((n: string) => n[0])
                     .join("")
                     .toUpperCase()
                 : getUserInitials(user.email || "")}
