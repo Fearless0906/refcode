@@ -16,7 +16,20 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Return the user to an error page with instructions
-  const url = new URL("/login?error=Could not authenticate user", origin);
+  // Check if user is already authenticated (for password-based login)
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    // User is already authenticated, redirect to dashboard
+    const url = new URL("/dashboard", origin);
+    return NextResponse.redirect(url);
+  }
+
+  // If no code and no user, this might be a direct access to /auth/callback
+  // Redirect to login with an error message
+  const url = new URL("/login?error=Invalid authentication attempt", origin);
   return NextResponse.redirect(url);
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -16,26 +16,19 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { Mail, Lock, Loader2, AlertCircle, Github } from "lucide-react";
+import { Mail, Lock, User, Loader2, AlertCircle, Github } from "lucide-react";
 
-export default function LoginPage() {
+export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
-
-  useEffect(() => {
-    const error = searchParams.get("error");
-    if (error) {
-      setMessage({ type: "error", text: error });
-    }
-  }, [searchParams]);
 
   // Redirect if user is already authenticated
   useEffect(() => {
@@ -44,16 +37,22 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
-  const handleEmailPasswordSignIn = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage(null);
 
     try {
       const supabase = createClient();
-      const { error, data } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (error) {
@@ -61,14 +60,23 @@ export default function LoginPage() {
       } else if (data.session) {
         setMessage({
           type: "success",
-          text: "Signing you in...",
+          text: "Account created successfully! Redirecting to dashboard...",
         });
         // Check if session is established and redirect
         if (data.session.user) {
           setTimeout(() => {
             router.push("/dashboard");
-          }, 1000);
+          }, 2000);
         }
+      } else {
+        setMessage({
+          type: "success",
+          text: "Account created successfully! Please check your email to confirm your account.",
+        });
+        // Clear form after successful signup
+        setEmail("");
+        setPassword("");
+        setFullName("");
       }
     } catch (error) {
       setMessage({
@@ -80,7 +88,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignUp = async () => {
     setIsLoading(true);
     setMessage(null);
 
@@ -114,11 +122,29 @@ export default function LoginPage() {
           <div className="mx-auto w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mb-4">
             <Github className="w-6 h-6 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardTitle className="text-2xl font-bold">
+            Create an account
+          </CardTitle>
+          <CardDescription>Enter your details to get started</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form onSubmit={handleEmailPasswordSignIn} className="space-y-4">
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="pl-10"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -142,27 +168,28 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   required
                   disabled={isLoading}
+                  minLength={6}
                 />
               </div>
             </div>
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || !email || !password}
+              disabled={isLoading || !email || !password || !fullName}
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Creating account...
                 </>
               ) : (
-                "Sign In"
+                "Create Account"
               )}
             </Button>
           </form>
@@ -182,7 +209,7 @@ export default function LoginPage() {
             variant="outline"
             type="button"
             className="w-full"
-            onClick={handleGoogleSignIn}
+            onClick={handleGoogleSignUp}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -207,7 +234,7 @@ export default function LoginPage() {
                 />
               </svg>
             )}
-            Sign in with Google
+            Sign up with Google
           </Button>
 
           {message && (
@@ -230,13 +257,13 @@ export default function LoginPage() {
           )}
 
           <div className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            Already have an account?{" "}
             <Button
               variant="link"
               className="p-0 h-auto font-normal"
-              onClick={() => router.push("/signup")}
+              onClick={() => router.push("/login")}
             >
-              Sign up
+              Sign in
             </Button>
           </div>
         </CardContent>
