@@ -1,6 +1,7 @@
 import React from "react";
 import { Menu, Search, Bell } from "lucide-react";
 import { Button } from "./ui/button";
+import { UserProfile } from "./UserProfile";
 
 interface HeaderProps {
   setMobileMenuOpen: (value: boolean) => void;
@@ -45,17 +46,7 @@ const Header: React.FC<HeaderProps> = ({ setMobileMenuOpen }) => {
           </Button>
 
           {/* Profile */}
-          <Button
-            variant="ghost"
-            className="flex items-center space-x-2 text-sm rounded-lg p-2 hover:bg-gray-100"
-          >
-            <div className="h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-medium text-sm">JD</span>
-            </div>
-            <span className="hidden sm:block text-gray-700 font-medium">
-              John Doe
-            </span>
-          </Button>
+          <UserProfile />
         </div>
       </div>
     </header>

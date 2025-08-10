@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useAuth } from "@/lib/contexts/auth-context";
+import { AuthLoading } from "@/components/AuthLoading";
 import {
   Search,
   Code,
@@ -70,6 +72,21 @@ interface PopularItem {
 const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [timeRange, setTimeRange] = useState("7d");
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <AuthLoading />;
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <h1 className="text-4xl font-bold text-gray-900">
+          Please log in to view the dashboard.
+        </h1>
+      </div>
+    );
+  }
 
   // Popular Items Data
   const popularItems: PopularItem[] = [
@@ -126,10 +143,26 @@ const Dashboard: React.FC = () => {
   };
 
   const actions = [
-    { icon: Code, label: "New Code Snippet" },
-    { icon: FolderOpen, label: "Create Project" },
-    { icon: Bookmark, label: "Save Bookmark" },
-    { icon: BookOpen, label: "Add Documentation" },
+    {
+      icon: Code,
+      label: "New Code Snippet",
+      onClick: () => console.log("New Code Snippet"),
+    },
+    {
+      icon: FolderOpen,
+      label: "Create Project",
+      onClick: () => console.log("Create Project"),
+    },
+    {
+      icon: Bookmark,
+      label: "Save Bookmark",
+      onClick: () => console.log("Save Bookmark"),
+    },
+    {
+      icon: BookOpen,
+      label: "Add Documentation",
+      onClick: () => console.log("Add Documentation"),
+    },
   ];
 
   return (
@@ -491,7 +524,7 @@ const Dashboard: React.FC = () => {
         {/* Productivity Chart */}
         <Card className="border-0 shadow-md">
           <CardHeader>
-            <CardTitle className="text-lg">This Week's Activity</CardTitle>
+            <CardTitle className="text-lg">This Week&apos;s Activity</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
