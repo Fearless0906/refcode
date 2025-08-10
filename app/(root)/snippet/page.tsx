@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/lib/contexts/auth-context";
+import { snippetService } from "@/lib/supabase/snippets";
+import { Snippet } from "@/types/type";
 import {
   Search,
   Plus,
@@ -11,6 +14,7 @@ import {
   Tag,
   Calendar,
   Star,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,62 +47,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface Snippet {
-  id: string;
-  title: string;
-  description: string;
-  code: string;
-  language: string;
-  tags: string[];
-  createdAt: string;
-  favorite: boolean;
-}
-
 const SnippetPage: React.FC = () => {
-  const [snippets, setSnippets] = useState<Snippet[]>([
-    {
-      id: "1",
-      title: "React useState Hook",
-      description: "Basic useState implementation for state management",
-      code: `const [count, setCount] = useState(0);
-
-const increment = () => {
-  setCount(prev => prev + 1);
-};`,
-      language: "javascript",
-      tags: ["react", "hooks", "state"],
-      createdAt: "2024-01-15",
-      favorite: true,
-    },
-    {
-      id: "2",
-      title: "CSS Flexbox Center",
-      description: "Perfect centering with flexbox",
-      code: `.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}`,
-      language: "css",
-      tags: ["css", "flexbox", "layout"],
-      createdAt: "2024-01-14",
-      favorite: false,
-    },
-    {
-      id: "3",
-      title: "Python List Comprehension",
-      description: "Filter and transform lists efficiently",
-      code: `# Filter even numbers and square them
-squares = [x**2 for x in range(10) if x % 2 == 0]
-print(squares)  # [0, 4, 16, 36, 64]`,
-      language: "python",
-      tags: ["python", "list-comprehension", "functional"],
-      createdAt: "2024-01-13",
-      favorite: true,
-    },
-  ]);
-
+  const { user } = useAuth();
+  const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
@@ -112,6 +63,9 @@ print(squares)  # [0, 4, 16, 36, 64]`,
     tags: "",
   });
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const languages = [
     "all",
@@ -125,6 +79,43 @@ print(squares)  # [0, 4, 16, 36, 64]`,
     "rust",
   ];
 
+  // Load snippets on component mount
+  useEffect(() => {
+    if (user) {
+      loadSnippets();
+    }
+  }, [user]);
+
+  // Load snippets from database
+  const loadSnippets = async () => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await snippetService.getSnippets(user.id);
+      setSnippets(data);
+    } catch (err: unknown) {
+      console.error("Error loading snippets:", err);
+
+      // Provide more specific error messages
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+
+      if (errorMessage === "No active session") {
+        setError("Authentication error: Please log in again");
+      } else if (errorMessage.includes("fetch")) {
+        setError("Network error: Check your internet connection");
+      } else if (errorMessage.includes("JWT")) {
+        setError("Authentication expired: Please log in again");
+      } else {
+        setError(`Failed to load snippets: ${errorMessage}`);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Filter snippets based on search, language, and tab
   const filteredSnippets = snippets.filter((snippet) => {
     const matchesSearch =
       snippet.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -164,49 +155,82 @@ print(squares)  # [0, 4, 16, 36, 64]`,
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setSnippets((prev) => prev.filter((s) => s.id !== id));
-  };
+  const handleDelete = async (id: string) => {
+    if (!user) return;
 
-  const toggleFavorite = (id: string) => {
-    setSnippets((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, favorite: !s.favorite } : s))
-    );
-  };
-
-  const handleSubmit = () => {
-    const snippet: Snippet = {
-      id: editingSnippet?.id || Date.now().toString(),
-      title: formData.title,
-      description: formData.description,
-      code: formData.code,
-      language: formData.language,
-      tags: formData.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-      createdAt:
-        editingSnippet?.createdAt || new Date().toISOString().split("T")[0],
-      favorite: editingSnippet?.favorite || false,
-    };
-
-    if (editingSnippet) {
-      setSnippets((prev) =>
-        prev.map((s) => (s.id === editingSnippet.id ? snippet : s))
-      );
-    } else {
-      setSnippets((prev) => [snippet, ...prev]);
+    try {
+      await snippetService.deleteSnippet(id);
+      setSnippets((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      setError("Failed to delete snippet");
+      console.error("Error deleting snippet:", err);
     }
+  };
 
-    setIsDialogOpen(false);
-    setEditingSnippet(null);
-    setFormData({
-      title: "",
-      description: "",
-      code: "",
-      language: "javascript",
-      tags: "",
-    });
+  const toggleFavorite = async (id: string, currentFavorite: boolean) => {
+    if (!user) return;
+
+    try {
+      await snippetService.toggleFavorite(id, !currentFavorite);
+      setSnippets((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, favorite: !s.favorite } : s))
+      );
+    } catch (err) {
+      setError("Failed to update favorite status");
+      console.error("Error toggling favorite:", err);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!user) return;
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      const snippetData = {
+        title: formData.title,
+        description: formData.description,
+        code: formData.code,
+        language: formData.language,
+        tags: formData.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        favorite: editingSnippet?.favorite || false,
+        user_id: user.id,
+      };
+
+      if (editingSnippet) {
+        // Update existing snippet
+        const updatedSnippet = await snippetService.updateSnippet(
+          editingSnippet.id,
+          snippetData
+        );
+        setSnippets((prev) =>
+          prev.map((s) => (s.id === editingSnippet.id ? updatedSnippet : s))
+        );
+      } else {
+        // Create new snippet
+        const newSnippet = await snippetService.createSnippet(snippetData);
+        setSnippets((prev) => [newSnippet, ...prev]);
+      }
+
+      setIsDialogOpen(false);
+      setEditingSnippet(null);
+      setFormData({
+        title: "",
+        description: "",
+        code: "",
+        language: "javascript",
+        tags: "",
+      });
+    } catch (err) {
+      setError("Failed to save snippet");
+      console.error("Error saving snippet:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const openNewSnippetDialog = () => {
@@ -221,6 +245,36 @@ print(squares)  # [0, 4, 16, 36, 64]`,
     setIsDialogOpen(true);
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Loading snippets...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="w-full mx-auto max-w-2xl">
+          <Alert className="border-red-200 bg-red-50">
+            <AlertDescription className="text-red-800">
+              {error}
+            </AlertDescription>
+          </Alert>
+          <Button onClick={loadSnippets} className="mt-4" variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="w-full mx-auto space-y-6">
@@ -231,6 +285,11 @@ print(squares)  # [0, 4, 16, 36, 64]`,
             <p className="text-gray-600 mt-1">
               Organize and manage your code snippets
             </p>
+            {snippets.length === 0 && (
+              <p className="text-blue-600 mt-2 text-sm">
+                ✨ Ready to start? Create your first snippet below!
+              </p>
+            )}
           </div>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -271,6 +330,7 @@ print(squares)  # [0, 4, 16, 36, 64]`,
                       }
                       placeholder="Enter snippet title"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -281,6 +341,7 @@ print(squares)  # [0, 4, 16, 36, 64]`,
                       onValueChange={(value) =>
                         setFormData((prev) => ({ ...prev, language: value }))
                       }
+                      disabled={isSubmitting}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -311,6 +372,7 @@ print(squares)  # [0, 4, 16, 36, 64]`,
                     }
                     placeholder="Brief description of the snippet"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -323,6 +385,7 @@ print(squares)  # [0, 4, 16, 36, 64]`,
                       setFormData((prev) => ({ ...prev, tags: e.target.value }))
                     }
                     placeholder="react, hooks, state"
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -337,6 +400,7 @@ print(squares)  # [0, 4, 16, 36, 64]`,
                     placeholder="Paste your code here..."
                     className="font-mono text-sm min-h-[200px]"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -345,11 +409,23 @@ print(squares)  # [0, 4, 16, 36, 64]`,
                     type="button"
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </Button>
-                  <Button type="button" onClick={handleSubmit}>
-                    {editingSnippet ? "Update" : "Create"} Snippet
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {editingSnippet ? "Updating..." : "Creating..."}
+                      </>
+                    ) : (
+                      `${editingSnippet ? "Update" : "Create"} Snippet`
+                    )}
                   </Button>
                 </DialogFooter>
               </div>
@@ -399,13 +475,44 @@ print(squares)  # [0, 4, 16, 36, 64]`,
 
           <TabsContent value={activeTab} className="mt-6">
             {filteredSnippets.length === 0 ? (
-              <Alert>
-                <Code className="h-4 w-4" />
-                <AlertDescription>
-                  No snippets found. Try adjusting your filters or create a new
-                  snippet.
-                </AlertDescription>
-              </Alert>
+              <div className="text-center py-12">
+                {snippets.length === 0 ? (
+                  // No snippets at all - show create first snippet option
+                  <div className="space-y-4">
+                    <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Code className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        No snippets yet
+                      </h3>
+                      <p className="text-gray-600 max-w-md mx-auto">
+                        Start building your code collection by adding your first
+                        snippet. Organize your favorite code examples,
+                        solutions, and reusable components.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={openNewSnippetDialog}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      size="lg"
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      Create Your First Snippet
+                    </Button>
+                  </div>
+                ) : (
+                  // No snippets match the current filters
+                  <Alert>
+                    <Code className="h-4 w-4" />
+                    <AlertDescription>
+                      No snippets found matching your current filters. Try
+                      adjusting your search terms, language selection, or create
+                      a new snippet.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredSnippets.map((snippet) => (
@@ -426,7 +533,9 @@ print(squares)  # [0, 4, 16, 36, 64]`,
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => toggleFavorite(snippet.id)}
+                          onClick={() =>
+                            toggleFavorite(snippet.id, snippet.favorite)
+                          }
                           className="ml-2"
                         >
                           <Star
@@ -445,7 +554,7 @@ print(squares)  # [0, 4, 16, 36, 64]`,
                         </Badge>
                         <div className="flex items-center text-xs text-gray-500 gap-1">
                           <Calendar className="w-3 h-3" />
-                          {snippet.createdAt}
+                          {new Date(snippet.created_at).toLocaleDateString()}
                         </div>
                       </div>
                     </CardHeader>

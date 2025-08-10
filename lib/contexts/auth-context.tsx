@@ -21,10 +21,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       try {
+        console.log("Getting initial session...");
         const {
           data: { session },
+          error,
         } = await supabase.auth.getSession();
-        setUser(session?.user ?? null);
+
+        if (error) {
+          console.error("Error getting initial session:", error);
+        } else {
+          console.log("Initial session:", session?.user?.email || "No user");
+          setUser(session?.user ?? null);
+        }
       } catch (error) {
         console.error("Error getting initial session:", error);
       } finally {

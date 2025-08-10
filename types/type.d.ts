@@ -34,3 +34,57 @@ export interface PopularItem {
   views: number;
   icon: React.ReactNode;
 }
+
+export interface Snippet {
+  id: string;
+  title: string;
+  description: string;
+  code: string;
+  language: string;
+  tags: string[];
+  created_at: string;
+  favorite: boolean;
+  user_id: string;
+}
+
+export interface Database {
+  public: {
+    Tables: {
+      snippets: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          code: string;
+          language: string;
+          tags: string[];
+          created_at: string;
+          favorite: boolean;
+          user_id: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description: string;
+          code: string;
+          language: string;
+          tags: string[];
+          created_at?: string;
+          favorite?: boolean;
+          user_id: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string;
+          code?: string;
+          language?: string;
+          tags?: string[];
+          created_at?: string;
+          favorite?: boolean;
+          user_id?: string;
+        };
+      };
+    };
+  };
+}
