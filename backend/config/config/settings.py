@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'api',
     'codeblock',
     'cheatsheet',
+    'snippet',
 ]
 
 MIDDLEWARE = [
