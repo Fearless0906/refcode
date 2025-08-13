@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,30 +19,34 @@ import {
   Shield,
   Sparkles,
 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { State } from "@/store/store";
 
 const LandingPage: React.FC = () => {
   const router = useRouter();
 
-  // useEffect(() => {
-  //   if (!loading && user) {
-  //     router.push("/dashboard");
-  //   }
-  // }, [user, loading, router]);
+  const { loading, user } = useSelector((state: State) => state.auth);
 
-  // if (loading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="flex flex-col items-center space-y-4">
-  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-  //         <p className="text-gray-600">Loading...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/dashboard");
+    }
+  }, [user, loading, router]);
 
-  // if (user) {
-  //   return null; // Will redirect to dashboard
-  // }
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return null; // Will redirect to dashboard
+  }
 
   const features = [
     {

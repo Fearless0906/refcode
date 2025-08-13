@@ -1,16 +1,9 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useAuth } from "@/lib/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Code,
@@ -18,7 +11,6 @@ import {
   Bookmark,
   FolderOpen,
   Github,
-  Zap,
   Star,
   Users,
   ArrowRight,
@@ -27,10 +19,12 @@ import {
   Shield,
   Sparkles,
 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { State } from "@/store/store";
 
 const LandingPage: React.FC = () => {
-  const { user, loading } = useAuth();
   const router = useRouter();
+  const { user, loading } = useSelector((state: State) => state.auth);
 
   useEffect(() => {
     if (!loading && user) {
