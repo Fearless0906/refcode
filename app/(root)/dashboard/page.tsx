@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuth } from "@/lib/contexts/auth-context";
 import { AuthLoading } from "@/components/AuthLoading";
 import {
   Search,
@@ -23,21 +22,20 @@ import QuickActions from "@/components/QuickActions";
 
 const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { user, loading } = useAuth();
 
-  if (loading) {
-    return <AuthLoading />;
-  }
+  // if (loading) {
+  //   return <AuthLoading />;
+  // }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <h1 className="text-4xl font-bold text-gray-900">
-          Please log in to view the dashboard.
-        </h1>
-      </div>
-    );
-  }
+  // if (!user) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+  //       <h1 className="text-4xl font-bold text-gray-900">
+  //         Please log in to view the dashboard.
+  //       </h1>
+  //     </div>
+  //   );
+  // }
 
   const actions = [
     {

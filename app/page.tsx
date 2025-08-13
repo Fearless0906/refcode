@@ -1,16 +1,9 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useAuth } from "@/lib/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Code,
@@ -18,7 +11,6 @@ import {
   Bookmark,
   FolderOpen,
   Github,
-  Zap,
   Star,
   Users,
   ArrowRight,
@@ -29,29 +21,28 @@ import {
 } from "lucide-react";
 
 const LandingPage: React.FC = () => {
-  const { user, loading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && user) {
-      router.push("/dashboard");
-    }
-  }, [user, loading, router]);
+  // useEffect(() => {
+  //   if (!loading && user) {
+  //     router.push("/dashboard");
+  //   }
+  // }, [user, loading, router]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="flex flex-col items-center space-y-4">
+  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  //         <p className="text-gray-600">Loading...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  if (user) {
-    return null; // Will redirect to dashboard
-  }
+  // if (user) {
+  //   return null; // Will redirect to dashboard
+  // }
 
   const features = [
     {

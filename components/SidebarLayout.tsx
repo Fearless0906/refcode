@@ -126,13 +126,8 @@ const SidebarLayout = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                 )}
               >
-                <Icon
-                  className={cn(
-                    "flex-shrink-0 h-5 w-5",
-                    sidebarOpen ? "mr-3" : "mx-auto"
-                  )}
-                />
-                {sidebarOpen && <span>{item.name}</span>}
+                <Icon className="mr-3 h-5 w-5" />
+                {item.name}
               </Link>
             );
           })}
