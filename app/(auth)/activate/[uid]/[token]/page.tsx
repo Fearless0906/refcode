@@ -18,7 +18,7 @@ export default function ActivatePage() {
   const { loading, error } = useSelector((state: State) => state.auth);
 
   // From query param
-  const queryParams = new URLSearchParams(searchParams as any);
+  const queryParams = new URLSearchParams(searchParams);
   const activationCode = queryParams.get("code");
 
   useEffect(() => {

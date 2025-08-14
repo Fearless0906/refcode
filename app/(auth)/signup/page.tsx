@@ -76,9 +76,9 @@ export default function SignUpPage() {
       await dispatch(signup(signupData)).unwrap();
       toast.success("Account created successfully! Please log in.");
       router.push("/login");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Signup failed:", error);
-      toast.error(error.message || "Signup failed. Please try again.");
+      toast.error("Signup failed. Please try again.");
     }
   };
 

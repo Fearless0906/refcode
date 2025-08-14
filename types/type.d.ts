@@ -76,6 +76,13 @@ export interface authState {
   success: boolean;
 }
 
+export interface snippetState {
+  snippet: Snippet[];
+  loading: boolean;
+  error: string | null;
+  success: boolean;
+}
+
 export interface Snippet {
   id: string;
   title: string;

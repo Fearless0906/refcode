@@ -7,18 +7,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Home,
-  BarChart3,
-  Settings,
   ChevronLeft,
   ChevronRight,
   User,
   BookMarked,
   Code2,
-  BookPlus,
-  File,
-  BookMarkedIcon,
-  Projector,
-  Rotate3D,
   FileText,
   Bookmark,
   FolderGit2,
@@ -34,7 +27,7 @@ interface SidebarProps {
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home, current: true },
+  { name: "Dashboard", href: "/dashboard", icon: Home, current: true },
   { name: "Snippets", href: "/snippet", icon: Code2, current: false },
   {
     name: "Cheat Sheets",

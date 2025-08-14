@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { AuthLoading } from "@/components/AuthLoading";
 import {
   Search,
   Code,
@@ -19,23 +18,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QuickStats from "@/components/QuickStats";
 import RecentActivity from "@/components/RecentActivity";
 import QuickActions from "@/components/QuickActions";
+import { useSelector } from "react-redux";
+import { State } from "@/store/store";
+import { AuthLoading } from "@/components/AuthLoading";
 
 const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // if (loading) {
-  //   return <AuthLoading />;
-  // }
+  const { loading, user } = useSelector((state: State) => state.auth);
 
-  // if (!user) {
-  //   return (
-  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-  //       <h1 className="text-4xl font-bold text-gray-900">
-  //         Please log in to view the dashboard.
-  //       </h1>
-  //     </div>
-  //   );
-  // }
+  if (loading) {
+    return <AuthLoading />;
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <h1 className="text-4xl font-bold text-gray-900">
+          Please log in to view the dashboard.
+        </h1>
+      </div>
+    );
+  }
 
   const actions = [
     {

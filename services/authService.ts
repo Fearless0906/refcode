@@ -1,3 +1,4 @@
+import { BASE_URL } from "@/lib/client";
 import {
   LoginProps,
   ResetPassword,
@@ -5,8 +6,6 @@ import {
   Signup,
   User,
 } from "@/types/type";
-
-const BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || "";
 
 class AuthService {
   async login(data: LoginProps) {

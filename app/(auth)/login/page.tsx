@@ -146,7 +146,7 @@ export default function LoginPage() {
             <Alert className="border-red-200 bg-red-50">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-red-800">
-                {error.message || "An unexpected error occurred"}
+                {error || "An unexpected error occurred"}
               </AlertDescription>
             </Alert>
           )}

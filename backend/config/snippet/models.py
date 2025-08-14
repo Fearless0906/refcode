@@ -6,6 +6,7 @@ User = get_user_model()
 # Create your models here.
 class Snippet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='snippets')
+    title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     code = models.TextField()
     language = models.CharField(max_length=100)

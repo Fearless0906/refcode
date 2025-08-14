@@ -5,6 +5,7 @@ class SnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snippet
         fields = [
+            'id',
             'title',
             'description',
             'code',
@@ -12,4 +13,5 @@ class SnippetSerializer(serializers.ModelSerializer):
             'tags',
             'created_at',
             'favorite',
+            'user',
         ]

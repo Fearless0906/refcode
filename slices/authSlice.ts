@@ -1,6 +1,7 @@
 import { authState, ResetPasswordConfirm, Signup, User } from "@/types/type";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { authService } from "@/services/authService";
+import { getErrorMessage } from "@/lib/helper";
 
 const loadInitialState = (): authState => {
   return {
@@ -39,8 +40,8 @@ export const login = createAsyncThunk(
       );
 
       return response.access;
-    } catch (error: any) {
-      const message = error.response?.data?.detail || "login failed";
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
       dispatch(failure(message));
       throw new Error(message);
     }
@@ -57,8 +58,8 @@ export const signup = createAsyncThunk(
       });
       dispatch(signupSuccess());
       return response;
-    } catch (error: any) {
-      const message = error.response?.data?.detail || "Signup failed";
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
       dispatch(failure(message));
       throw new Error(message);
     }
@@ -83,12 +84,8 @@ export const activateAccount = createAsyncThunk(
       const response = await authService.activate({ uid, token });
       dispatch(activateSuccess());
       return response;
-    } catch (error: any) {
-      const message =
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        error.response?.data ||
-        "Activation failed";
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
       dispatch(activationFailure(message));
       return rejectWithValue(message);
     }
@@ -102,9 +99,8 @@ export const resetPassword = createAsyncThunk(
       dispatch(start());
       await authService.resetPassword({ email });
       dispatch(resetPasswordSuccess());
-    } catch (error: any) {
-      const message =
-        error.response?.data?.detail || "Failed to send reset password email!";
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
       dispatch(failure(message));
       return rejectWithValue(message);
     }
@@ -118,9 +114,8 @@ export const resetPasswordConfirm = createAsyncThunk(
       dispatch(start());
       await authService.resetPasswordConfirm(data);
       dispatch(resetPasswordSuccess());
-    } catch (error: any) {
-      const message =
-        error.response?.data?.detail || "Failed to reset password!";
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
       dispatch(failure(message));
       return rejectWithValue(message);
     }
