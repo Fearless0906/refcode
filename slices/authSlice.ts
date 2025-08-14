@@ -65,18 +65,32 @@ export const signup = createAsyncThunk(
   }
 );
 
-export const activate = createAsyncThunk(
+export const activateAccount = createAsyncThunk(
   "auth/activate",
-  async ({ uid, token }: { uid: string; token: string }, { dispatch }) => {
+  async (
+    { uid, token }: { uid: string; token: string },
+    { dispatch, rejectWithValue }
+  ) => {
+    // Only require token to be present (uid can be empty for activation codes)
+    if (!token) {
+      return rejectWithValue(
+        "Invalid activation link. Missing activation token."
+      );
+    }
+
     try {
       dispatch(start());
       const response = await authService.activate({ uid, token });
       dispatch(activateSuccess());
       return response;
     } catch (error: any) {
-      const message = error.response?.data?.detail || "Activation failed";
-      dispatch(failure(message));
-      throw new Error(message);
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.response?.data ||
+        "Activation failed";
+      dispatch(activationFailure(message));
+      return rejectWithValue(message);
     }
   }
 );
@@ -149,6 +163,11 @@ const authSlice = createSlice({
       state.loading = false;
       state.success = true;
     },
+    activationFailure: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = action.payload;
+      state.success = false;
+    },
     resetPasswordSuccess: (state) => {
       state.loading = false;
       state.success = true;
@@ -164,6 +183,7 @@ export const {
   setUser,
   signupSuccess,
   activateSuccess,
+  activationFailure,
   resetPasswordSuccess,
 } = authSlice.actions;
 export default authSlice.reducer;

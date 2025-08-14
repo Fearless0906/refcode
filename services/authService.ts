@@ -61,13 +61,18 @@ class AuthService {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify(payload),
       }
     );
 
-    const data = await response.json();
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.detail || "Activation failed");
+    }
 
+    // If successful, return the payload
     return {
-      ...data,
+      success: true,
       uid: payload.uid,
       token: payload.token,
     };
