@@ -33,11 +33,20 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      await dispatch(login({ email, password })).unwrap();
-      router.push("/dashboard");
+      const result = await dispatch(login({ email, password })).unwrap();
+      if (result) {
+        toast.success("Login successful!");
+
+        // Get the redirect URL from the query parameters
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get("from") || "/dashboard";
+
+        router.refresh();
+        router.push(redirectTo);
+      }
     } catch (error) {
       console.error("Login failed", error);
-      toast.error("Failed to login");
+      toast.error(error instanceof Error ? error.message : "Failed to login");
     }
   };
 

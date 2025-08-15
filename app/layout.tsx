@@ -5,7 +5,6 @@ import "./globals.css";
 import { Providers } from "./provider";
 
 const inter = Inter({
-  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
@@ -20,8 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${inter.className} antialiased`}
+        suppressHydrationWarning
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

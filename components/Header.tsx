@@ -2,7 +2,6 @@ import React from "react";
 import { Menu, Search, Bell } from "lucide-react";
 import { Button } from "./ui/button";
 import { UserProfile } from "./UserProfile";
-// import { UserProfile } from "./UserProfile";
 
 interface HeaderProps {
   setMobileMenuOpen: (value: boolean) => void;

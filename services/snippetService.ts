@@ -14,11 +14,10 @@ class SnippetService {
     token: string,
     snippet: Omit<Snippet, "id" | "created_at">
   ): Promise<Snippet> {
-    // Map user_id to user for backend compatibility
     const { user_id, ...snippetWithoutUserId } = snippet;
     const snippetForBackend = {
       ...snippetWithoutUserId,
-      user: parseInt(user_id), // Convert user_id string to number for backend
+      user: parseInt(user_id),
     };
 
     const res = await fetch(`${BASE_URL}/snippets/snippet-create/`, {

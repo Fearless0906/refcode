@@ -14,9 +14,9 @@ const loadInitialState = (): snippetState => {
 const initialState: snippetState = loadInitialState();
 
 export const fetchSnippetList = createAsyncThunk<
-  Snippet[], // Return type
-  string, // Argument type (token)
-  { rejectValue: string } // Reject type
+  Snippet[],
+  string,
+  { rejectValue: string }
 >("snippet/snippetList", async (token, { rejectWithValue }) => {
   try {
     return await snippetService.snippetList(token);
@@ -28,9 +28,9 @@ export const fetchSnippetList = createAsyncThunk<
 });
 
 export const createSnippet = createAsyncThunk<
-  Snippet, // Return type
-  { token: string; snippet: Omit<Snippet, "id" | "created_at"> }, // Argument type
-  { rejectValue: string } // Reject type
+  Snippet,
+  { token: string; snippet: Omit<Snippet, "id" | "created_at"> },
+  { rejectValue: string }
 >("snippet/createSnippet", async ({ token, snippet }, { rejectWithValue }) => {
   try {
     return await snippetService.createSnippet(token, snippet);
@@ -42,9 +42,9 @@ export const createSnippet = createAsyncThunk<
 });
 
 export const updateSnippet = createAsyncThunk<
-  Snippet, // Return type
-  { token: string; id: number; snippet: Partial<Snippet> }, // Argument type
-  { rejectValue: string } // Reject type
+  Snippet,
+  { token: string; id: number; snippet: Partial<Snippet> },
+  { rejectValue: string }
 >(
   "snippet/updateSnippet",
   async ({ token, id, snippet }, { rejectWithValue }) => {

@@ -20,15 +20,28 @@ export const login = createAsyncThunk(
   "auth/login",
   async (
     { email, password }: { email: string; password: string },
-    { dispatch }
+    { dispatch, rejectWithValue }
   ) => {
     try {
       dispatch(start());
       const response = await authService.login({ email, password });
-      dispatch(success({ token: response.access }));
+
+      if (!response.access) {
+        return rejectWithValue("Login failed: No access token received");
+      }
+
+      // Store token in localStorage for persistence
+      localStorage.setItem("token", response.access);
 
       // fetch user
       const user = await authService.getUser(response.access);
+
+      if (!user) {
+        return rejectWithValue("Failed to fetch user details");
+      }
+
+      // Update auth state
+      dispatch(success({ token: response.access }));
       dispatch(
         setUser({
           ...user,
@@ -39,11 +52,11 @@ export const login = createAsyncThunk(
         })
       );
 
-      return response.access;
+      return true;
     } catch (error: unknown) {
       const message = getErrorMessage(error);
       dispatch(failure(message));
-      throw new Error(message);
+      return rejectWithValue(message);
     }
   }
 );

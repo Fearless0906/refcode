@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createCheatSheet, updateCheatSheet } from "@/lib/supabase/cheatsheets";
 import { CheatSheet, CheatSheetItem } from "@/types/type";
 
 interface CreateCheatSheetProps {
