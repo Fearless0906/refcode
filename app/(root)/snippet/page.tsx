@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Snippet } from "@/types/type";
 import {
   Search,
@@ -44,17 +44,17 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useDispatch, useSelector } from "react-redux";
-import { Dispatch, State } from "@/store/store";
 import {
+  fetchSnippet,
   createSnippet,
   updateSnippet,
-  fetchSnippetList,
-} from "@/slices/snippetSlice";
-import { snippetService } from "@/services/snippetService";
+  deleteSnippet,
+} from "@/services/api";
+import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { State } from "@/store/store";
 
 const SnippetPage: React.FC = () => {
-  const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
@@ -70,7 +70,8 @@ const SnippetPage: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const dispatch = useDispatch<Dispatch>();
+  const [snippetList, setSnippetList] = useState<Snippet[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const languages = [
     "all",
@@ -84,12 +85,33 @@ const SnippetPage: React.FC = () => {
     "rust",
   ];
 
-  const {
-    loading,
-    error: snippetError,
-    snippet: snippetList,
-  } = useSelector((state: State) => state.snippet);
   const { user, token } = useSelector((state: State) => state.auth);
+
+  useEffect(() => {
+    const loadSnippets = async () => {
+      if (!token) {
+        toast.error("You must be logged in to view snippets");
+        setSnippetList([]); // clear list if no token
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setLocalError(null);
+        const data = await fetchSnippet(token);
+        setSnippetList(data);
+        console.log("Fetched snippets:", data);
+      } catch (err) {
+        setLocalError("Failed to load snippets");
+        console.error("Error loading snippets:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSnippets();
+  }, [token]);
 
   // Filter snippets based on search, language, and tab
   const filteredSnippets = snippetList.filter((snippet) => {
@@ -132,29 +154,34 @@ const SnippetPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!token) return;
+
     try {
-      // await snippetService.deleteSnippet(id);
-      setSnippets((prev) => prev.filter((s) => s.id !== id));
+      await deleteSnippet(token, parseInt(id));
+      const updatedSnippets = await fetchSnippet(token);
+      setSnippetList(updatedSnippets);
+      toast.success("Snippet deleted successfully");
     } catch (err) {
       setLocalError("Failed to delete snippet");
       console.error("Error deleting snippet:", err);
+      toast.error("Failed to delete snippet");
     }
   };
 
   const toggleFavorite = async (id: string, currentFavorite: boolean) => {
-    if (!user) return;
+    if (!user || !token) return;
 
     try {
-      // No toggleFavorite method in snippetService, using updateSnippet instead
-      await snippetService.updateSnippet(token!, parseInt(id), {
+      await updateSnippet(token, parseInt(id), {
         favorite: !currentFavorite,
       });
-      setSnippets((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, favorite: !s.favorite } : s))
-      );
+      const updatedSnippets = await fetchSnippet(token);
+      setSnippetList(updatedSnippets);
+      toast.success("Favorite status updated");
     } catch (err) {
       setLocalError("Failed to update favorite status");
       console.error("Error toggling favorite:", err);
+      toast.error("Failed to update favorite status");
     }
   };
 
@@ -202,25 +229,18 @@ const SnippetPage: React.FC = () => {
 
       let result;
       if (editingSnippet) {
-        result = await dispatch(
-          updateSnippet({
-            token,
-            id: parseInt(editingSnippet.id),
-            snippet: snippetData,
-          })
-        ).unwrap();
+        result = await updateSnippet(
+          token,
+          parseInt(editingSnippet.id),
+          snippetData
+        );
       } else {
-        result = await dispatch(
-          createSnippet({
-            token,
-            snippet: snippetData,
-          })
-        ).unwrap();
+        result = await createSnippet(token, snippetData);
       }
 
       if (result) {
-        // Refresh the snippets list only after successful create/update
-        await dispatch(fetchSnippetList(token));
+        const updatedSnippets = await fetchSnippet(token);
+        setSnippetList(updatedSnippets);
         setIsDialogOpen(false);
         setEditingSnippet(null);
         setFormData({
@@ -230,18 +250,35 @@ const SnippetPage: React.FC = () => {
           language: "javascript",
           tags: "",
         });
+        toast.success(
+          editingSnippet
+            ? "Snippet updated successfully"
+            : "Snippet created successfully"
+        );
       }
     } catch (err) {
       setLocalError("Failed to save snippet");
       console.error("Error saving snippet:", err);
+      toast.error("Failed to save snippet");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const loadSnippets = () => {
-    if (token) {
-      dispatch(fetchSnippetList(token!));
+  const loadSnippets = async () => {
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      const snippets = await fetchSnippet(token);
+      setSnippetList(snippets);
+      setLocalError(null);
+    } catch (err) {
+      setLocalError("Failed to load snippets");
+      console.error("Error loading snippets:", err);
+      toast.error("Failed to load snippets");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -270,13 +307,13 @@ const SnippetPage: React.FC = () => {
   }
 
   // Show error state
-  if (localError || snippetError) {
+  if (localError) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="w-full mx-auto max-w-2xl">
           <Alert className="border-red-200 bg-red-50">
             <AlertDescription className="text-red-800">
-              {localError || snippetError}
+              {localError}
             </AlertDescription>
           </Alert>
           <Button
@@ -301,7 +338,7 @@ const SnippetPage: React.FC = () => {
             <p className="text-gray-600 mt-1">
               Organize and manage your code snippets
             </p>
-            {snippets.length === 0 && (
+            {snippetList.length === 0 && (
               <p className="text-blue-600 mt-2 text-sm">
                 ✨ Ready to start? Create your first snippet below!
               </p>
@@ -497,18 +534,18 @@ const SnippetPage: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="all">
-              All Snippets ({snippets.length})
+              All Snippets ({snippetList.length})
             </TabsTrigger>
             <TabsTrigger value="favorites">
               <Star className="w-4 h-4 mr-1" />
-              Favorites ({snippets.filter((s) => s.favorite).length})
+              Favorites ({snippetList.filter((s) => s.favorite).length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6">
             {filteredSnippets.length === 0 ? (
               <div className="text-center py-12">
-                {snippets.length === 0 ? (
+                {snippetList.length === 0 ? (
                   // No snippets at all - show create first snippet option
                   <div className="space-y-4">
                     <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
